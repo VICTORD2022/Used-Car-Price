@@ -64,7 +64,7 @@ jobs:
       timeout: 7200
 
   register_model:
-    name: register_model  # Provide the job name
+    name: register-model  # Provide the job name
     display_name: register-model  # Provide the display name for the job
     code: ../../../data-science/src
     command: >-
