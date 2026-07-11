@@ -1,8 +1,8 @@
 $schema: https://azuremlschemas.azureedge.net/latest/pipelineJob.schema.json
 type: pipeline
-display_name: decisiontree-training-pipeline  # Provide the display name for the pipeline
-experiment_name: Used-cars-price-prediction  # Provide the experiment name
-description: Training Pipeline to predict used car price  # Provide the description for the pipeline
+display_name: decisiontree-training-pipeline
+experiment_name: Used-cars-price-prediction
+description: Training Pipeline to predict used car price
 
 inputs:
   raw_data:
@@ -36,8 +36,8 @@ jobs:
     inputs:
       raw_data: ${{parent.inputs.raw_data}}
     outputs:
-      train_data: ${{parent.outputs.train_data}}
-      test_data: ${{parent.outputs.test_data}}
+      train_data: # Internal handoff to sweep step
+      test_data:  # Internal handoff to sweep step
 
   sweep_step:
     name: sweep_job
@@ -50,25 +50,25 @@ jobs:
       model_output:
         type: mlflow_model
     sampling_algorithm: random
-    trial: ./train.yml  # Refers to a separate command component
+    trial: ./train.yml  
     search_space:
-      criterion:
+      criterion:                                    # FIXED: Updated for DecisionTreeRegressor
         type: choice
-        values: ["gini", "entropy"]
+        values: ["squared_error", "absolute_error"] 
       max_depth:
         type: choice
-        values: [1,3,5,10]
+        values: [1, 3, 5, 10]
     objective:
       goal: maximize
-      primary_metric: Recall
+      primary_metric: R2                            # FIXED: Changed from Recall to match train.py
     limits:
       max_total_trials: 20
       max_concurrent_trials: 10
       timeout: 7200
 
   register_model:
-    name: register-model  # Provide the job name
-    display_name: register-model  # Provide the display name for the job
+    name: register-model  
+    display_name: register-model  
     code: ../../../data-science/src
     command: >-
       python register.py 
