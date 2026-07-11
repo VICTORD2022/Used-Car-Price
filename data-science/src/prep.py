@@ -9,29 +9,32 @@ from pathlib import Path
 import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 import mlflow
 
 def parse_args():
     '''Parse input arguments'''
 
-    parser = argparse.ArgumentParser("prep")  # Create an ArgumentParser object
-    parser.add_argument("--raw_data", type=str, help="Path to raw data")  # Specify the type for raw data (str)
-    parser.add_argument("--train_data", type=str, help="Path to train dataset")  # Specify the type for train data (str)
-    parser.add_argument("--test_data", type=str, help="Path to test dataset")  # Specify the type for test data (str)
-    parser.add_argument("--test_train_ratio", type=float, default=0.2, help="Test-train ratio")  # Specify the type (float) and default value (0.2) for test-train ratio
+    parser = argparse.ArgumentParser("prep")
+    parser.add_argument("--raw_data", type=str, help="Path to raw data")
+    parser.add_argument("--train_data", type=str, help="Path to train dataset")
+    parser.add_argument("--test_data", type=str, help="Path to test dataset")
+    parser.add_argument("--test_train_ratio", type=float, default=0.2, help="Test-train ratio")
     args = parser.parse_args()
 
     return args
 
 def main(args):
-    '''Read, split, and save datasets'''
+    '''Read, process, split, and save datasets'''
 
     # Reading Data
     df = pd.read_csv(args.raw_data)    
 
-    # Split Data into train and test datasets
-    train_df, test_df = train_test_split(df, test_size=args.test_train_ratio, random_state=42)
+    # FIXED: Convert categorical string columns into numeric dummy variables (0s and 1s)
+    # This prevents the "ValueError: could not convert string to float" error in train.py
+    df_encoded = pd.get_dummies(df, drop_first=True)
+
+    # Split Data into train and test datasets using the encoded dataframe
+    train_df, test_df = train_test_split(df_encoded, test_size=args.test_train_ratio, random_state=42)
 
     # Save train and test data
     os.makedirs(args.train_data, exist_ok=True)
